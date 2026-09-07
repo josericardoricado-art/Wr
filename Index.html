@@ -30,8 +30,22 @@
   </div>
 
   <script type="module">
-    // Aqui você importará as configurações do Firebase AI Logic e App Check que vimos!
-    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getAI, getGenerativeModel, GoogleAIBackend } from "https://esm.sh/firebase/ai";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY_AQUI", // <-- COLOQUE SUA CHAVE AQUI
+      authDomain: "xkdkdkd-c8c20.firebaseapp.com",
+      projectId: "xkdkdkd-c8c20",
+      storageBucket: "xkdkdkd-c8c20.firebasestorage.app",
+      messagingSenderId: "804248417975",
+      appId: "SUA_APP_ID_AQUI" // <-- COLOQUE SEU APP ID AQUI
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const ai = getAI(app, { backend: new GoogleAIBackend() });
+    const model = getGenerativeModel(ai, { model: "gemini-3.7-flash" });
+
     async function carregarETraduzir() {
       const link = document.getElementById('videoUrl').value;
       const player = document.getElementById('videoPlayer');
@@ -45,17 +59,28 @@
       status.innerText = "Extraindo vídeo e áudio original...";
       
       try {
-        // 1. Seu servidor no Render processa o link e retorna o vídeo direto
         const urlDiretaDoVideo = "URL_DO_VIDEO_PROCESSADO"; 
         
         player.src = urlDiretaDoVideo;
         player.style.display = "block";
         player.play();
 
-        status.innerText = "O Gemini está escutando e dublando em tempo real...";
+        status.innerText = "O Gemini está analisando e traduzindo o áudio...";
         
-        // 2. Seu código envia o áudio ao Firebase AI Logic
-        // 3. O áudio dublado retornado é sincronizado e tocado junto com o player de vídeo!
+        const prompt = "Traduza o áudio deste vídeo de forma natural para o português brasileiro.";
+        
+        const result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: "DADOS_DO_AUDIO_EM_BASE64", 
+              mimeType: "audio/mp3"
+            }
+          }
+        ]);
+
+        const textoTraduzido = result.response.text();
+        status.innerText = "Texto Traduzido: " + textoTraduzido;
         
       } catch (error) {
         status.innerText = "Erro ao processar a dublagem.";
